@@ -1,0 +1,6 @@
+@NewsProject_HostAddress = http://localhost:5066/api
+
+GET {{NewsProject_HostAddress}}/News/
+Accept: application/json
+
+###
