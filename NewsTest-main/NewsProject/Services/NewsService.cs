@@ -10,26 +10,16 @@ namespace NewsProject.Services
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IRSSRepository _rssRepository;
+        private readonly IConfiguration _config;
 
-        public NewsService(IMemoryCache memoryCache, IRSSRepository rssRepository)
+        public NewsService(IMemoryCache memoryCache, IRSSRepository rssRepository, IConfiguration config)
         {
             _memoryCache = memoryCache;
             _rssRepository = rssRepository;
+            _config = config;
         }
 
-        public async Task<List<NewsItem>> GetNews()
-        {
-            var news = _memoryCache.Get<List<NewsItem>>("NewsItems");
-
-            if (news is not null) return news;
-
-            //news = await _rssRepository.GetNewsFromRssFeed();
-            news = await _rssRepository.GetNewsFromFile();
-            _memoryCache.Set("NewsItems", news, TimeSpan.FromHours(1));
-            return news;
-
-        }
-
+        
         public async Task<List<NewsItem>> GetNewsTitles()
         {
             var newsList = await GetNews();
@@ -51,6 +41,24 @@ namespace NewsProject.Services
             }
 
             return selectedNews;
+        }
+        public async Task<List<NewsItem>> GetNews()
+        {
+            var news = _memoryCache.Get<List<NewsItem>>("NewsItems");
+
+            if (news is not null) return news;
+
+            if (!_config.GetValue<bool>("AppSettings:BlockedEnviornment"))
+            {
+                news = await _rssRepository.GetNewsFromRssFeed();
+            }
+            else
+            {
+                news = await _rssRepository.GetNewsFromFile();
+            }
+            _memoryCache.Set("NewsItems", news, TimeSpan.FromHours(1));
+            return news;
+
         }
     }
 }

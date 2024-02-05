@@ -6,20 +6,26 @@ namespace NewsProject.Repository
 {
     public class RSSRepository : IRSSRepository
     {
-        private const string RssFeedUrl = "http://news.google.com/news?pz=1&cf=all&ned=en_il&hl=en&output=rss";
+        private IConfiguration _config;
 
+        public RSSRepository(IConfiguration config)
+        {
+            _config = config;
+
+        }
         public async Task<List<NewsItem>> GetNewsFromRssFeed()
         {
+            var rssUrl = _config.GetValue<string>("AppSettings:RssUrl");
             using (var httpClient = new HttpClient())
             {
-                var rssFeed = await httpClient.GetStringAsync(RssFeedUrl);
+                var rssFeed = await httpClient.GetStringAsync(rssUrl);
                 var xDoc = XDocument.Parse(rssFeed);
                 var newsList = MapNews(xDoc);
                 return newsList;
             }
         }
 
-        private static List<NewsItem> MapNews(XDocument xDoc)
+        private List<NewsItem> MapNews(XDocument xDoc)
         {
             var counter = 0;
             var newsList = xDoc.Descendants("item").Select(item => new NewsItem
@@ -31,15 +37,14 @@ namespace NewsProject.Repository
             }).ToList();
             return newsList;
         }
-
+        //only for development because the environment was not open to internet
         public async Task<List<NewsItem>> GetNewsFromFile()
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "NewsRss.xml");
 
             if (!System.IO.File.Exists(filePath))
             {
-                // Handle the case where the XML file doesn't exist
-                return new List<NewsItem>();
+                throw new Exception("xml file does not exist");
             }
 
             var xDoc = XDocument.Load(filePath);

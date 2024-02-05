@@ -9,18 +9,11 @@ using System.Xml.Linq;
 [Route("api/")]
 public class NewsController : ControllerBase
 {
-    private const string RssFeedUrl = "http://news.google.com/news?pz=1&cf=all&ned=en_il&hl=en&output=rss";
     private readonly INewsService _newsService;
 
     public NewsController(INewsService newsService)
     {
         _newsService = newsService;
-    }
-    [HttpGet("AllNews")]
-    public async Task<IActionResult> GetNews()
-    {
-        var newsList = await _newsService.GetNews();
-        return Ok(newsList);
     }
 
     [HttpGet("News")]
@@ -38,6 +31,10 @@ public class NewsController : ControllerBase
         return Ok(newsDetails);
     }
 
-
-
+    [HttpGet("AllNews")]
+    public async Task<IActionResult> GetNews()
+    {
+        var newsList = await _newsService.GetNews();
+        return Ok(newsList);
+    }
 }
